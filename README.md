@@ -1,6 +1,7 @@
 Excelactor
 
 A Rust tool for bulk searching and extracting data from multiple Excel files
+
 Overview
 
 This tool  processes a folder of Excel files (.xlsx), searches for rows containing a specified keyword, and exports the results to a CSV file..
