@@ -1,5 +1,5 @@
 [package]
-name = "batch-excel-extract"
+name = "excelactor"
 version = "0.1.0"
 edition = "2024"
 

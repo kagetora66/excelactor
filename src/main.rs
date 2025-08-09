@@ -12,7 +12,7 @@ use std::time::Duration;
 use std::error::Error;
 use std::sync::mpsc;
 use std::thread;
-
+use std::collections::BTreeMap;
 struct coordinates {
     row: u32,
     column: u32,
@@ -73,29 +73,41 @@ fn check_range(merged: &String, selected: &str) -> bool {
         return false
     }
 }
-//creates a vector of everything in the row
- fn get_row(row: u32, sheet: &Worksheet) -> Vec<String> {    
+
+
+fn get_row(row: u32, sheet: &Worksheet) -> Vec<String> {    
     let mut row_values = Vec::new();
     let merged = sheet.get_merge_cells();
     let cell_row = row.to_string();
-    //if our filter word is merged
-    for range in merged{
+    //for sorting merged rows
+    let mut rowmap = BTreeMap::new();
+
+    for range in merged {
        let mut range_value = range.get_range();
     if check_range(&range_value, &cell_row) == true {
         let mut merge_coord = sheet.map_merged_cell(&*range_value);
         let mut value = sheet.get_value(merge_coord);
-        row_values.push(value.to_string());
+        let column_num = merge_coord.0;
+            rowmap.insert(column_num, value.to_string());
+        
     }
    }
+
     let cell = sheet.get_collection_by_row(&row);
     for item in cell {
+        let column = item.get_coordinate().get_col_num();
         let value = item.get_cell_value().get_value();
-        row_values.push(value.to_string());
+        rowmap.insert(*column, value.to_string());
     }
 
+    for (key, val) in rowmap.range(0..){
+            row_values.push(val.to_string());
+    }
     row_values
 }
 
+
+//creates a vector of everything in the row
 fn get_keyword_coord(query: &str, sheet: &Worksheet) -> Vec<coordinates>
 {
     let mut coords = Vec::new();
@@ -118,37 +130,7 @@ fn prompt_input(prompt: &str) -> io::Result<String> {
     io::stdin().read_line(&mut input)?;
     Ok(input.trim().to_string())
 }
-fn process_csv(input_path: &str, output_path: &str) -> Result<(), Box<dyn Error>> {
-    let input_file = File::open(input_path)?;
-    let reader = BufReader::new(input_file);
-    let mut output_file = File::create(output_path)?;
 
-    // Write header
-    writeln!(output_file, "filename,size,metric,value1,value2,value3")?;
-
-    for line in reader.lines() {
-        let line = line?;
-        if line.trim().is_empty() {
-            continue;
-        }
-
-        // Split by commas and filter out empty strings
-        let parts: Vec<&str> = line.split(',').filter(|s| !s.trim().is_empty()).collect();
-
-        // Process in chunks of 6 (each record has 6 fields)
-        for chunk in parts.chunks(6) {
-            if chunk.len() == 6 {
-                writeln!(
-                    output_file,
-                    "{},{},{},{},{},{}",
-                    chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5]
-                )?;
-            }
-        }
-    }
-
-    Ok(())
-}
 fn main() {
     println!("Please select a folder containing the excel files");
     let folder = select_folder().ok_or(anyhow::anyhow!("No folder selected")).unwrap();
@@ -158,13 +140,8 @@ fn main() {
     // Get the query
     let keyword = prompt_input("Enter your search query: ").expect("Failed to read query");
 
-    // Get optional filter
-    //desktopfs-pkgs.txtlet filter = match prompt_input("Filter rows/columns by keyword? (press Enter if no): ") {
-    //
-    //     Ok(s) if !s.trim().is_empty() => s.trim().to_string(),
-    //    _ => String::new(), // Empty string if no filter
-    //};
-
+    // Get sheet name
+    let sheet = prompt_input("Enter Sheet name: ").expect("Failed to read");
     let (tx, rx) = mpsc::channel();
     let mut handles = vec![];
     
@@ -172,11 +149,11 @@ fn main() {
     for file in xlsx_files {
 
         let keyword = keyword.to_string();
-       // let filter = filter.clone();
+        let sheet = sheet.clone();
         let tx = tx.clone();
      let handle = thread::spawn(move || {
         let book = umya_spreadsheet::reader::xlsx::read(&file).unwrap();
-        let sheet = book.get_sheet_by_name("SMART Data").unwrap();
+        let sheet = book.get_sheet_by_name(&sheet).unwrap();
         let coords = get_keyword_coord(&keyword, &sheet);
         let filename = &file.file_name().unwrap().to_str().unwrap();
         let mut results = vec![];
@@ -189,33 +166,21 @@ fn main() {
                 empty_row = vec!["".to_string(); row.len()];
                 results.push(row);
             }
-            //wtr.write_record(&row);
-            //thread::sleep(Duration::from_millis(10));
-        }
-        //wtr.write_record(&empty_row);
 
-        //wtr.flush();
+        }
         tx.send((results, empty_row)).unwrap();
         println!("Thread {} finished", &file.display());
     });
      handles.push(handle);
-//sys     drop(tx);
+
     }
     drop(tx);
-    // for _ in 0..xlsx_files.len() {
-    //     if let Ok((rows, empty_row)) = rx.recv() {
-    //         for row in rows {
-    //             wtr.write_record(&row);
-    //         }
-    //         wtr.write_record(&empty_row);
-    //     }
-    // }
     // Collect results
     for received in rx {
         let (rows, empty_row) = received;
         for row in rows {
-            println!("row is {:?}", row);
             wtr.write_record(&row);
+            thread::sleep(Duration::from_millis(5)); 
         }
         wtr.write_record(&empty_row);
     }
@@ -225,15 +190,8 @@ fn main() {
     println!("Process finished");
     wtr.flush();       
     //processing output
-      let input_path = "output.csv";
-      let output_path = "clean_output.csv";
+      let output_path = "output.csv";
 
-    //if !Path::new(input_path).exists() {
-    //    eprintln!("Error: Input file '{}' not found", input_path);
-    //    std::process::exit(1);
-    //}
-
-    //process_csv(input_path, output_path);
     println!("Successfully cleaned CSV. Output written to {}", output_path);  
 
 }
