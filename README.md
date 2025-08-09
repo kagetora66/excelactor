@@ -8,10 +8,15 @@ This tool  processes a folder of Excel files (.xlsx), searches for rows containi
 Key Features
 
 ✔ Bulk processing - Scan multiple Excel files in one operation
+
 ✔ Keyword search - Extract rows containing your search term
+
 ✔ Fast Performance: Rust's concurrency features are fully utilized for max performance
+
 ✔ Merged cell support - Properly handles merged rows/columns
+
 ✔ CSV export - Clean output in standard comma-separated format
+
 Current Status
 
 ✅ Implemented:
