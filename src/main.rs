@@ -14,7 +14,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
-
+use umya_spreadsheet::*;
 struct coordinates {
     row: u32,
     column: u32,
@@ -132,7 +132,11 @@ fn prompt_input(prompt: &str) -> io::Result<String> {
     io::stdin().read_line(&mut input)?;
     Ok(input.trim().to_string())
 }
-
+fn row_writer(row: Vec<String>, row_num: u32) {
+    
+    
+    
+}
 fn main() {
     println!("Please select a folder containing the excel files");
     let folder = select_folder().ok_or(anyhow::anyhow!("No folder selected")).unwrap();
@@ -162,18 +166,16 @@ fn main() {
         let coords = get_keyword_coord(&keyword, &sheet);
         let filename = &file.file_name().unwrap().to_str().unwrap();
         let mut results = vec![];
-        let mut empty_row = Vec::new();
         
         for cord in coords {
             let mut row = get_row(cord.row, &sheet);
             if row.len() != 0 {
                 row.insert(0, filename.to_string()); // Add filename as first column
-                empty_row = vec!["".to_string(); row.len()];
                 results.push(row);
             }
 
         }
-        tx.send((results, empty_row)).unwrap();
+        tx.send(results).unwrap();
         let mut num = counter.lock().unwrap();
         *num += 1;
         print!("\rProcessed {}/{} files", *num, length);
@@ -185,24 +187,30 @@ fn main() {
     }
     drop(tx);
     // Collect results
-    let mut flush_counter = 0;
+     let mut flush_counter = 0;
+     let mut results = new_file();
+     let result_sheet = results.new_sheet("RESULTS").unwrap();
+
+     let mut row_ind = 1;
+     let mut column_ind = 1;
      for received in rx {
-         let (rows, empty_row) = received;
+         let rows  = received;
          for row in rows {
-             wtr.write_record(&row);
-             flush_counter += 1;
-             if flush_counter % 50 == 0 {
-             wtr.flush();
+                for str in &row {
+                results.get_sheet_mut(&1).unwrap().get_cell_mut((&column_ind, &row_ind)).set_value(str);
+                column_ind += 1;
              }
+            column_ind = 1;
+            row_ind += 1;
          }
-         wtr.write_record(&empty_row);
-         wtr.flush();
      }
-    
+     
      for handle in handles {
         handle.join().unwrap();
     }
-    println!("Process finished");    
+    let path = std::path::Path::new("./results.xlsx");
+    let _ = writer::xlsx::write(&results, path);
+    println!("/nProcess finished");    
       let output_path = "output.csv";
 
     println!("Successfully cleaned CSV. Output written to {}", output_path);  
