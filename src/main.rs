@@ -13,6 +13,8 @@ use std::error::Error;
 use std::sync::mpsc;
 use std::thread;
 use std::collections::BTreeMap;
+use std::sync::{Arc, Mutex};
+
 struct coordinates {
     row: u32,
     column: u32,
@@ -135,7 +137,7 @@ fn main() {
     println!("Please select a folder containing the excel files");
     let folder = select_folder().ok_or(anyhow::anyhow!("No folder selected")).unwrap();
     let xlsx_files = find_xlsx_files(&folder).unwrap();
-
+    let length = xlsx_files.len();
     println!("Found xlsx files");
     // Get the query
     let keyword = prompt_input("Enter your search query: ").expect("Failed to read query");
@@ -144,13 +146,16 @@ fn main() {
     let sheet = prompt_input("Enter Sheet name: ").expect("Failed to read");
     let (tx, rx) = mpsc::channel();
     let mut handles = vec![];
-    
+    let mut counter = 0;
     let mut wtr = Writer::from_path("output.csv").unwrap();
+    let counter = Arc::new(Mutex::new(0));
+    
     for file in xlsx_files {
 
         let keyword = keyword.to_string();
         let sheet = sheet.clone();
         let tx = tx.clone();
+        let counter = Arc::clone(&counter);
      let handle = thread::spawn(move || {
         let book = umya_spreadsheet::reader::xlsx::read(&file).unwrap();
         let sheet = book.get_sheet_by_name(&sheet).unwrap();
@@ -169,27 +174,35 @@ fn main() {
 
         }
         tx.send((results, empty_row)).unwrap();
-        println!("Thread {} finished", &file.display());
+        let mut num = counter.lock().unwrap();
+        *num += 1;
+        print!("\rProcessed {}/{} files", *num, length);
+        io::stdout().flush().unwrap();
     });
+    
      handles.push(handle);
 
     }
     drop(tx);
     // Collect results
-    for received in rx {
-        let (rows, empty_row) = received;
-        for row in rows {
-            wtr.write_record(&row);
-            thread::sleep(Duration::from_millis(5)); 
-        }
-        wtr.write_record(&empty_row);
-    }
+    let mut flush_counter = 0;
+     for received in rx {
+         let (rows, empty_row) = received;
+         for row in rows {
+             wtr.write_record(&row);
+             flush_counter += 1;
+             if flush_counter % 50 == 0 {
+             wtr.flush();
+             }
+         }
+         wtr.write_record(&empty_row);
+         wtr.flush();
+     }
+    
      for handle in handles {
         handle.join().unwrap();
     }
-    println!("Process finished");
-    wtr.flush();       
-    //processing output
+    println!("Process finished");    
       let output_path = "output.csv";
 
     println!("Successfully cleaned CSV. Output written to {}", output_path);  
