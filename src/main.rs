@@ -1,4 +1,3 @@
-use csv::Writer;
 extern crate umya_spreadsheet;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
@@ -213,6 +212,6 @@ fn main() {
     println!("/nProcess finished");    
       let output_path = "output.csv";
 
-    println!("Successfully cleaned CSV. Output written to {}", output_path);  
+    println!("Successfully produced results. Output written to {}", output_path);  
 
 }
