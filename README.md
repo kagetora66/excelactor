@@ -32,6 +32,9 @@ Current Status
     Column extraction functionality
 
 
+🛠 How to build:
+
+    cargo build --release
 
 Usage
 
