@@ -131,10 +131,18 @@ fn prompt_input(prompt: &str) -> io::Result<String> {
     io::stdin().read_line(&mut input)?;
     Ok(input.trim().to_string())
 }
-fn row_writer(row: Vec<String>, row_num: u32) {
+fn row_writer(rows: Vec<Vec<String>>, sheet: &mut Spreadsheet) {
     
-    
-    
+    let mut column_ind = 1;
+    let mut row_ind = 1;
+    for row in rows {
+        for str in &row {
+            sheet.get_sheet_mut(&1).unwrap().get_cell_mut((&column_ind, &row_ind)).set_value(str);
+            column_ind += 1;
+            }
+        column_ind = 1;
+        row_ind += 1;
+        }
 }
 fn main() {
     println!("Please select a folder containing the excel files");
@@ -150,7 +158,6 @@ fn main() {
     let (tx, rx) = mpsc::channel();
     let mut handles = vec![];
     let mut counter = 0;
-    let mut wtr = Writer::from_path("output.csv").unwrap();
     let counter = Arc::new(Mutex::new(0));
     
     for file in xlsx_files {
@@ -194,14 +201,7 @@ fn main() {
      let mut column_ind = 1;
      for received in rx {
          let rows  = received;
-         for row in rows {
-                for str in &row {
-                results.get_sheet_mut(&1).unwrap().get_cell_mut((&column_ind, &row_ind)).set_value(str);
-                column_ind += 1;
-             }
-            column_ind = 1;
-            row_ind += 1;
-         }
+         row_writer(rows, &mut results);
      }
      
      for handle in handles {
@@ -210,7 +210,7 @@ fn main() {
     let path = std::path::Path::new("./results.xlsx");
     let _ = writer::xlsx::write(&results, path);
     println!("/nProcess finished");    
-      let output_path = "output.csv";
+      let output_path = "results.xlsx";
 
     println!("Successfully produced results. Output written to {}", output_path);  
 
