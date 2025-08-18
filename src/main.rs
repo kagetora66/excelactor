@@ -84,10 +84,10 @@ fn get_row(row: u32, sheet: &Worksheet) -> Vec<String> {
     let mut rowmap = BTreeMap::new();
 
     for range in merged {
-       let mut range_value = range.get_range();
+       let range_value = range.get_range();
     if check_range(&range_value, &cell_row) == true {
-        let mut merge_coord = sheet.map_merged_cell(&*range_value);
-        let mut value = sheet.get_value(merge_coord);
+        let merge_coord = sheet.map_merged_cell(&*range_value);
+        let value = sheet.get_value(merge_coord);
         let column_num = merge_coord.0;
             rowmap.insert(column_num, value.to_string());
         
@@ -114,7 +114,7 @@ fn get_keyword_coord(query: &str, sheet: &Worksheet) -> Vec<coordinates>
     let mut coords = Vec::new();
     let cells = sheet.get_cell_collection();
     for item in cells {
-        let mut value = item.get_cell_value().get_value();
+        let value = item.get_cell_value().get_value();
         if query == value{
             coords.push(coordinates {
                 row: *item.get_coordinate().get_row_num(),
@@ -157,7 +157,6 @@ fn main() {
     let sheet = prompt_input("Enter Sheet name: ").expect("Failed to read");
     let (tx, rx) = mpsc::channel();
     let mut handles = vec![];
-    let mut counter = 0;
     let counter = Arc::new(Mutex::new(0));
     
     for file in xlsx_files {
@@ -193,12 +192,9 @@ fn main() {
     }
     drop(tx);
     // Collect results
-     let mut flush_counter = 0;
      let mut results = new_file();
      let result_sheet = results.new_sheet("RESULTS").unwrap();
 
-     let mut row_ind = 1;
-     let mut column_ind = 1;
      for received in rx {
          let rows  = received;
          row_writer(rows, &mut results);
