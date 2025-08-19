@@ -54,26 +54,11 @@ fn check_range(merged: &String, selected: &str) -> bool {
         }
     };
 
-    let num1 = caps.get(1)
-    .unwrap_or_else(|| panic!("No group 1 in string '{}'", merged))
-    .as_str()
-    .parse::<u32>()
-    .unwrap_or_else(|_| panic!("Failed to parse group 1 in string '{}'", merged));
-
-    let num2 = caps.get(2)
-    .unwrap_or_else(|| panic!("No group 2 in string '{}'", merged))
-    .as_str()
-    .parse::<u32>()
-    .unwrap_or_else(|_| panic!("Failed to parse group 2 in string '{}'", merged));
-
+    let num1 = caps[1].parse::<u32>().unwrap_or(0);
+    let num2 = caps[2].parse::<u32>().unwrap_or(0);
     let selected_row = selected.parse().unwrap();
-    if num1 < selected_row && selected_row < num2 {
-        return true
-    }
-    else {
-        return false
-    }
-}
+    num1 < selected_row && selected_row < num2
+   }
 
 
 fn get_row(row: u32, sheet: &Worksheet) -> Vec<String> {    
@@ -137,7 +122,7 @@ fn row_writer(rows: Vec<Vec<String>>, sheet: &mut Spreadsheet) {
     let mut row_ind = 1;
     for row in rows {
         for str in &row {
-            sheet.get_sheet_mut(&1).unwrap().get_cell_mut((&column_ind, &row_ind)).set_value(str);
+            sheet.get_sheet_mut(&0).unwrap().get_cell_mut((&column_ind, &row_ind)).set_value(str);
             column_ind += 1;
             }
         column_ind = 1;
@@ -193,7 +178,7 @@ fn main() {
     drop(tx);
     // Collect results
      let mut results = new_file();
-     let result_sheet = results.new_sheet("RESULTS").unwrap();
+     //let result_sheet = results.new_sheet("RESULTS").unwrap();
 
      for received in rx {
          let rows  = received;
@@ -205,7 +190,7 @@ fn main() {
     }
     let path = std::path::Path::new("./results.xlsx");
     let _ = writer::xlsx::write(&results, path);
-    println!("/nProcess finished");    
+    println!("\nProcess finished");    
       let output_path = "results.xlsx";
 
     println!("Successfully produced results. Output written to {}", output_path);  
