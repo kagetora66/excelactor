@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 description = "Batch extracting data from many excel files based on input keyword"
 readme = "README.md"
+licence = "MIT OR Apache-2.0"
 
 [[bin]]
 name = "excelactor"

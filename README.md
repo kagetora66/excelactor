@@ -25,6 +25,8 @@ Current Status
 
     Merged row support
 
+    Multi-threading for fast process
+
 
 
 🛠 In Development:
@@ -32,13 +34,13 @@ Current Status
     Column extraction functionality
 
 
-🛠 How to build:
+🛠 How to build (install cargo if you dont already have it):
 
-    cargo build --release
+    cargo install --release excelactor
 
 Usage
 
-    Run the executable
+    Run the executable(type excelactor in command line)
 
     Enter your search keyword
 
@@ -46,4 +48,4 @@ Usage
 
     Specify the folder containing Excel files
 
-    Results will be saved in output.csv
+    Results will be saved in results.xlsx
