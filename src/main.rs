@@ -1,5 +1,4 @@
 extern crate umya_spreadsheet;
-use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
 use std::io;
 use std::path::{Path, PathBuf};
@@ -7,8 +6,6 @@ use regex::Regex;
 use umya_spreadsheet::Worksheet;
 use walkdir::WalkDir;
 use anyhow::{Context, Result};
-use std::time::Duration;
-use std::error::Error;
 use std::sync::mpsc;
 use std::thread;
 use std::collections::BTreeMap;
@@ -94,9 +91,10 @@ fn get_row(row: u32, sheet: &Worksheet) -> Vec<String> {
 
 
 //creates a vector of everything in the row
-fn get_keyword_coord(query: &str, sheet: &Worksheet) -> Vec<coordinates>
+fn get_keyword_coord(query: &str, sheets: &[Worksheet]) -> Vec<coordinates>
 {
     let mut coords = Vec::new();
+    for sheet in sheets {
     let cells = sheet.get_cell_collection();
     for item in cells {
         let value = item.get_cell_value().get_value();
@@ -107,6 +105,7 @@ fn get_keyword_coord(query: &str, sheet: &Worksheet) -> Vec<coordinates>
             });
         }
     }
+ }
     coords
 }
 fn prompt_input(prompt: &str) -> io::Result<String> {
@@ -139,7 +138,7 @@ fn main() {
     let keyword = prompt_input("Enter your search query: ").expect("Failed to read query");
 
     // Get sheet name
-    let sheet = prompt_input("Enter Sheet name: ").expect("Failed to read");
+    let sheet = prompt_input("Enter Sheet name (leave empty if you want all sheets searched): ").expect("Failed to read");
     let (tx, rx) = mpsc::channel();
     let mut handles = vec![];
     let counter = Arc::new(Mutex::new(0));
@@ -152,16 +151,27 @@ fn main() {
         let counter = Arc::clone(&counter);
      let handle = thread::spawn(move || {
         let book = umya_spreadsheet::reader::xlsx::read(&file).unwrap();
-        let sheet = book.get_sheet_by_name(&sheet).unwrap();
-        let coords = get_keyword_coord(&keyword, &sheet);
+        let sheet_list: &[Worksheet];
+        //Search through all sheets or just one
+        if sheet == ""{ 
+            sheet_list = book.get_sheet_collection();
+        }
+        else{
+            let sheet_ref = book.get_sheet_by_name(&sheet).unwrap();
+            sheet_list = std::slice::from_ref(sheet_ref);
+        }
+
+        let coords = get_keyword_coord(&keyword, &sheet_list);
         let filename = &file.file_name().unwrap().to_str().unwrap();
         let mut results = vec![];
         
         for cord in coords {
+            for sheet in sheet_list{
             let mut row = get_row(cord.row, &sheet);
             if row.len() != 0 {
                 row.insert(0, filename.to_string()); // Add filename as first column
                 results.push(row);
+            }
             }
 
         }
@@ -193,6 +203,7 @@ fn main() {
     println!("\nProcess finished");    
       let output_path = "results.xlsx";
 
-    println!("Successfully produced results. Output written to {}", output_path);  
-
+    println!("Successfully produced results. Output written to {}", output_path);
 }
+
+

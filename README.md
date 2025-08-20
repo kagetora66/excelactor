@@ -44,7 +44,7 @@ Usage
 
     Enter your search keyword
 
-    Enter Sheet name
+    Enter Sheet name (leave empty if you want all sheets searched)
 
     Specify the folder containing Excel files
 
