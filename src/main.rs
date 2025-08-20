@@ -170,6 +170,7 @@ fn main() {
             let mut row = get_row(cord.row, &sheet);
             if row.len() != 0 {
                 row.insert(0, filename.to_string()); // Add filename as first column
+                row.insert(1, sheet.get_name().to_string()); // Add sheet as second column
                 results.push(row);
             }
             }
