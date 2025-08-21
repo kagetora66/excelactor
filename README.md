@@ -9,7 +9,7 @@ Key Features
 
 ✔ Bulk processing - Scan multiple Excel files in one operation
 
-✔ Keyword search - Extract rows containing your search term
+✔ Keyword search - Extract rows or columns containing your search term
 
 ✔ Fast Performance: Rust's concurrency features are fully utilized for max performance
 
@@ -29,11 +29,6 @@ Current Status
 
 
 
-🛠 In Development:
-
-    Column extraction functionality
-
-
 🛠 How to build (install cargo if you dont already have it):
 
     cargo install --release excelactor
@@ -42,10 +37,13 @@ Usage
 
     Run the executable(type excelactor in command line)
 
+    Select folders containing the excel files
+
     Enter your search keyword
 
     Enter Sheet name (leave empty if you want all sheets searched)
 
-    Specify the folder containing Excel files
+    Say whether you want columns or rows to be extracted
+
 
     Results will be saved in results.xlsx

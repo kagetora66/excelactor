@@ -1,12 +1,13 @@
 [package]
 name = "excelactor"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2024"
 description = "Batch extracting data from many excel files based on input keyword"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 authors = ["Sina"]
 repository = "https://github.com/kagetora66/excelactor"
+keywords = ["excel", "batch", "data"]
 [[bin]]
 name = "excelactor"
 path = "src/main.rs"
