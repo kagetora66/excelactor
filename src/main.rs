@@ -249,8 +249,8 @@ fn main() {
             for sheet in sheet_list{
             let mut column = get_column(cord.column, &sheet);
             if column.len() != 0 {
-                column.insert(0, filename.to_string()); // Add filename as first column
-                column.insert(1, sheet.get_name().to_string()); // Add sheet as second column
+                column.insert(0, filename.to_string()); // Add filename as first row
+                column.insert(1, sheet.get_name().to_string()); // Add sheet as second row
                 results.push(column);
             }
             }
@@ -271,7 +271,6 @@ fn main() {
     drop(tx);
     // Collect results
      let mut results = new_file();
-     //let result_sheet = results.new_sheet("RESULTS").unwrap();
 
      for received in rx {
         if let ExtractState::ExtractRow = extract_state {
