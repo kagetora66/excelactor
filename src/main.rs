@@ -131,7 +131,7 @@ fn get_column(column: u32, sheet: &Worksheet) -> Vec<String> {
     column_values
 }
 
-//creates a vector of everything in the row
+//creates a vector of everything in the row or column
 fn get_keyword_coord(query: &str, sheets: &[Worksheet]) -> Vec<coordinates>
 {
     let mut coords = Vec::new();
@@ -139,7 +139,7 @@ fn get_keyword_coord(query: &str, sheets: &[Worksheet]) -> Vec<coordinates>
     let cells = sheet.get_cell_collection();
     for item in cells {
         let value = item.get_cell_value().get_value();
-        if query == value{
+        if value.contains(query){
             coords.push(coordinates {
                 row: *item.get_coordinate().get_row_num(),
                 column: *item.get_coordinate().get_col_num(),
@@ -271,18 +271,17 @@ fn main() {
     drop(tx);
     // Collect results
      let mut results = new_file();
-
+     let mut all_results = Vec::new();
      for received in rx {
-        if let ExtractState::ExtractRow = extract_state {
-         let rows  = received;
-         row_writer(rows, &mut results);
+         all_results.extend(received);
+     }
+     if let ExtractState::ExtractRow = extract_state {
+         row_writer(all_results, &mut results);
         }
         else {
-         let columns  = received;
-         column_writer(columns, &mut results);
+         column_writer(all_results, &mut results);
 
         }
-     }
      
      for handle in handles {
         handle.join().unwrap();
