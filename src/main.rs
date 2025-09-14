@@ -137,9 +137,12 @@ fn get_keyword_coord(query: &str, sheets: &[Worksheet]) -> Vec<coordinates>
     let mut coords = Vec::new();
     for sheet in sheets {
     let cells = sheet.get_cell_collection();
+    let mut Query = String::new();
+    Query = query.to_lowercase();
     for item in cells {
         let value = item.get_cell_value().get_value();
-        if value.contains(query){
+        let Value = value.to_lowercase();
+        if Value.contains(&Query){
             coords.push(coordinates {
                 row: *item.get_coordinate().get_row_num(),
                 column: *item.get_coordinate().get_col_num(),
@@ -275,6 +278,8 @@ fn main() {
      for received in rx {
          all_results.extend(received);
      }
+     all_results.sort();
+     all_results.dedup();
      if let ExtractState::ExtractRow = extract_state {
          row_writer(all_results, &mut results);
         }
@@ -293,5 +298,3 @@ fn main() {
 
     println!("Successfully produced results. Output written to {}", output_path);
 }
-
-
