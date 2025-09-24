@@ -28,11 +28,9 @@ fn select_folder() -> Option<PathBuf> {
 
 fn find_xlsx_files(folder: &Path) -> Result<Vec<PathBuf>> {
     let mut xlsx_files = Vec::new();
-
     for entry in WalkDir::new(folder) {
         let entry = entry?;
         let path = entry.path();
-
         if path.is_file() {
             if let Some(ext) = path.extension() {
                 if ext == "xlsx" {
@@ -132,10 +130,9 @@ fn get_column(column: u32, sheet: &Worksheet) -> Vec<String> {
 }
 
 //creates a vector of everything in the row or column
-fn get_keyword_coord(query: &str, sheets: &[Worksheet]) -> Vec<coordinates>
+fn get_keyword_coord(query: &str, sheet: &Worksheet) -> Vec<coordinates>
 {
     let mut coords = Vec::new();
-    for sheet in sheets {
     let cells = sheet.get_cell_collection();
     let mut Query = String::new();
     Query = query.to_lowercase();
@@ -149,7 +146,6 @@ fn get_keyword_coord(query: &str, sheets: &[Worksheet]) -> Vec<coordinates>
             });
         }
     }
- }
     coords
 }
 fn prompt_input(prompt: &str) -> io::Result<String> {
@@ -230,37 +226,35 @@ fn main() {
             let sheet_ref = book.get_sheet_by_name(&sheet).unwrap();
             sheet_list = std::slice::from_ref(sheet_ref);
         }
-
-        let coords = get_keyword_coord(&keyword, &sheet_list);
+       
         let filename = &file.file_name().unwrap().to_str().unwrap();
         let mut results = vec![];
         if let ExtractState::ExtractRow = extract_state {
-        for cord in coords {
             for sheet in sheet_list{
-            let mut row = get_row(cord.row, &sheet);
-            if row.len() != 0 {
-                row.insert(0, filename.to_string()); // Add filename as first column
-                row.insert(1, sheet.get_name().to_string()); // Add sheet as second column
-                results.push(row);
+	     let coords = get_keyword_coord(&keyword, sheet);
+	     for cord in coords {
+              let mut row = get_row(cord.row, &sheet);
+              if row.len() != 0 {
+                 row.insert(0, filename.to_string()); // Add filename as first column
+                 row.insert(1, sheet.get_name().to_string()); // Add sheet as second column
+                 results.push(row);
+                }
             }
-            }
-
+	    }
         }
-        }
-        else{
-        for cord in coords {
-            for sheet in sheet_list{
-            let mut column = get_column(cord.column, &sheet);
-            if column.len() != 0 {
-                column.insert(0, filename.to_string()); // Add filename as first row
-                column.insert(1, sheet.get_name().to_string()); // Add sheet as second row
-                results.push(column);
-            }
-            }
-
-        }
-        }
-
+         else{
+	     for sheet in sheet_list{
+	     let coords = get_keyword_coord(&keyword, sheet);
+		 for cord in coords {
+		     let mut column = get_column(cord.column, &sheet);
+                     if column.len() != 0 {
+			 column.insert(0, filename.to_string()); // Add filename as first row
+			 column.insert(1, sheet.get_name().to_string()); // Add sheet as second row
+			 results.push(column);
+		     }
+		 }
+         }
+	 }
         tx.send(results).unwrap();
         let mut num = counter.lock().unwrap();
         *num += 1;
