@@ -94,7 +94,7 @@ fn get_row(row: u32, sheet: &Worksheet) -> Vec<String> {
         rowmap.insert(*column, value.to_string());
     }
 
-    for (key, val) in rowmap.range(0..){
+    for (_key, val) in rowmap.range(0..){
             row_values.push(val.to_string());
     }
     row_values
@@ -123,23 +123,23 @@ fn get_column(column: u32, sheet: &Worksheet) -> Vec<String> {
         columnmap.insert(*row, value.to_string());
     }
 
-    for (key, val) in columnmap.range(0..){
+    for (_key, val) in columnmap.range(0..){
             column_values.push(val.to_string());
     }
     column_values
 }
 
 //creates a vector of everything in the row or column
-fn get_keyword_coord(query: &str, sheet: &Worksheet) -> Vec<coordinates>
+fn get_keyword_coord(keyword: &str, sheet: &Worksheet) -> Vec<coordinates>
 {
     let mut coords = Vec::new();
     let cells = sheet.get_cell_collection();
-    let mut Query = String::new();
-    Query = query.to_lowercase();
+    let mut query = String::new();
+    query = keyword.to_lowercase();
     for item in cells {
         let value = item.get_cell_value().get_value();
-        let Value = value.to_lowercase();
-        if Value.contains(&Query){
+        let value = value.to_lowercase();
+        if value.contains(&query){
             coords.push(coordinates {
                 row: *item.get_coordinate().get_row_num(),
                 column: *item.get_coordinate().get_col_num(),
@@ -229,6 +229,8 @@ fn main() {
        
         let filename = &file.file_name().unwrap().to_str().unwrap();
         let mut results = vec![];
+        let headers = vec!("File Name".to_string(), "Sheet Name".to_string());
+        results.push(headers);
         if let ExtractState::ExtractRow = extract_state {
             for sheet in sheet_list{
 	     let coords = get_keyword_coord(&keyword, sheet);
