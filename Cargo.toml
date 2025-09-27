@@ -1,6 +1,6 @@
 [package]
 name = "excelactor"
-version = "1.0.3"
+version = "1.0.4"
 edition = "2024"
 description = "Batch extracting data from many excel files based on input keyword"
 readme = "README.md"

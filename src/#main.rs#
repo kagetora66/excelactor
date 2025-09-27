@@ -276,8 +276,9 @@ fn main() {
      for received in rx {
          let length = received[0].len();
          all_results.extend(received);
+	 all_results.push(vec!["_".to_string(); length]);
      }
-//     all_results.sort();
+     //all_results.sort();
      all_results.dedup();
      if let ExtractState::ExtractRow = extract_state {
          row_writer(all_results, &mut results);
