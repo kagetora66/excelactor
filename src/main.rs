@@ -11,6 +11,9 @@ use std::thread;
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 use umya_spreadsheet::*;
+
+use crate::color::colour_separators;
+mod color;
 struct coordinates {
     row: u32,
     column: u32,
@@ -277,7 +280,6 @@ fn main() {
          let length = received[0].len();
          all_results.extend(received);
      }
-//     all_results.sort();
      all_results.dedup();
      if let ExtractState::ExtractRow = extract_state {
          row_writer(all_results, &mut results);
@@ -290,10 +292,11 @@ fn main() {
      for handle in handles {
         handle.join().unwrap();
     }
-    let path = std::path::Path::new("./results.xlsx");
+    let output_path = format!("{}/results.xlsx", folder.to_string_lossy());
+    let path = std::path::Path::new(&output_path);
     let _ = writer::xlsx::write(&results, path);
-    println!("\nProcess finished");    
-      let output_path = "results.xlsx";
-
+    println!("\nProcess finished");
+    colour_separators(path); 
+      //coloring seperators inside results
     println!("Successfully produced results. Output written to {}", output_path);
 }

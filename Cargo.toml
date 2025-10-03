@@ -1,6 +1,6 @@
 [package]
 name = "excelactor"
-version = "1.0.4"
+version = "1.0.5"
 edition = "2024"
 description = "Batch extracting data from many excel files based on input keyword"
 readme = "README.md"
@@ -13,7 +13,7 @@ name = "excelactor"
 path = "src/main.rs"
 
 [dependencies]
-umya-spreadsheet = "2.3.1"
+umya-spreadsheet = "2.3.3"
 regex = "1.11.1"
 csv = "1.3.1"
 rfd = "0.11"
