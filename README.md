@@ -34,6 +34,8 @@ Current Status
     cargo install --release excelactor
 
 Example Output:
+
+
 ![excelactor output](./docs/example.png "Results")
 
 
