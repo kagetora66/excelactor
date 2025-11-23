@@ -226,23 +226,30 @@ fn main() {
             sheet_list = book.get_sheet_collection();
         }
         else{
-            let sheet_ref = book.get_sheet_by_name(&sheet).unwrap();
-            sheet_list = std::slice::from_ref(sheet_ref);
+            if let Some(value) = book.get_sheet_by_name(&sheet) {
+                let sheet_ref = value;
+                sheet_list = std::slice::from_ref(sheet_ref);
+            }
+            else {
+                return
+            }
         }
        
         let filename = &file.file_name().unwrap().to_str().unwrap();
         let mut results = vec![];
-        let headers = vec!("File Name".to_string(), "Sheet Name".to_string());
-        results.push(headers);
         if let ExtractState::ExtractRow = extract_state {
             for sheet in sheet_list{
 	     let coords = get_keyword_coord(&keyword, sheet);
 	     for cord in coords {
               let mut row = get_row(cord.row, &sheet);
               if row.len() != 0 {
+                 let headers = vec!("File Name".to_string(), "Sheet Name".to_string());
+                 results.push(headers);  
                  row.insert(0, filename.to_string()); // Add filename as first column
                  row.insert(1, sheet.get_name().to_string()); // Add sheet as second column
                  results.push(row);
+	             let separator = format!("End of {}", filename);
+	             results.push(vec!(separator));
                 }
             }
 	    }
@@ -253,15 +260,17 @@ fn main() {
 		 for cord in coords {
 		     let mut column = get_column(cord.column, &sheet);
                      if column.len() != 0 {
-			 column.insert(0, filename.to_string()); // Add filename as first row
-			 column.insert(1, sheet.get_name().to_string()); // Add sheet as second row
-			 results.push(column);
-		     }
+                         let headers = vec!("File Name".to_string(), "Sheet Name".to_string());
+                         results.push(headers);  
+			             column.insert(0, filename.to_string()); // Add filename as first row
+			             column.insert(1, sheet.get_name().to_string()); // Add sheet as second row
+			             results.push(column);
+		             }
 		 }
          }
 	 }
-	let separator = format!("End of {}", filename);
-	results.push(vec!(separator));
+	//let separator = format!("End of {}", filename);
+	//results.push(vec!(separator));
         tx.send(results).unwrap();
         let mut num = counter.lock().unwrap();
         *num += 1;
@@ -277,8 +286,9 @@ fn main() {
      let mut results = new_file();
      let mut all_results = Vec::new();
      for received in rx {
-         let length = received[0].len();
+         if received.len() != 0{
          all_results.extend(received);
+         }
      }
      all_results.dedup();
      if let ExtractState::ExtractRow = extract_state {
