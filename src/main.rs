@@ -240,16 +240,17 @@ fn main() {
         if let ExtractState::ExtractRow = extract_state {
             for sheet in sheet_list{
 	     let coords = get_keyword_coord(&keyword, sheet);
+         if coords.len() != 0{
+            let headers = vec!("File Name".to_string(), "Sheet Name".to_string());
+            results.push(headers);  
+             
+         }
 	     for cord in coords {
               let mut row = get_row(cord.row, &sheet);
               if row.len() != 0 {
-                 let headers = vec!("File Name".to_string(), "Sheet Name".to_string());
-                 results.push(headers);  
                  row.insert(0, filename.to_string()); // Add filename as first column
                  row.insert(1, sheet.get_name().to_string()); // Add sheet as second column
                  results.push(row);
-	             let separator = format!("End of {}", filename);
-	             results.push(vec!(separator));
                 }
             }
 	    }
@@ -257,11 +258,14 @@ fn main() {
          else{
 	     for sheet in sheet_list{
 	     let coords = get_keyword_coord(&keyword, sheet);
+         if coords.len() != 0{
+            let headers = vec!("File Name".to_string(), "Sheet Name".to_string());
+            results.push(headers);  
+             
+         }
 		 for cord in coords {
 		     let mut column = get_column(cord.column, &sheet);
                      if column.len() != 0 {
-                         let headers = vec!("File Name".to_string(), "Sheet Name".to_string());
-                         results.push(headers);  
 			             column.insert(0, filename.to_string()); // Add filename as first row
 			             column.insert(1, sheet.get_name().to_string()); // Add sheet as second row
 			             results.push(column);
@@ -269,8 +273,6 @@ fn main() {
 		 }
          }
 	 }
-	//let separator = format!("End of {}", filename);
-	//results.push(vec!(separator));
         tx.send(results).unwrap();
         let mut num = counter.lock().unwrap();
         *num += 1;
