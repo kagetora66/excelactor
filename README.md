@@ -19,7 +19,7 @@ Key Features
 
 Current Status
 
-✅ Implemented:
+ Implemented:
 
     Row extraction with keyword matching
 
@@ -29,7 +29,7 @@ Current Status
 
 
 
-🛠 How to build (install cargo if you dont already have it):
+ How to build (install cargo if you dont already have it):
 
     cargo install --release excelactor
 
