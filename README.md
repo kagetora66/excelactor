@@ -31,7 +31,7 @@ Current Status
 
  How to build (install cargo if you dont already have it):
 
-    cargo install --release excelactor
+    cargo install excelactor
 
 Example Output:
 
